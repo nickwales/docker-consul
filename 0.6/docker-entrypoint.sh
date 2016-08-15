@@ -36,6 +36,7 @@ if [ -n "$CONSUL_CLIENT_INTERFACE" ]; then
   echo "==> Found address '$CONSUL_CLIENT_ADDRESS' for interface '$CONSUL_CLIENT_INTERFACE', setting client option..."
 fi
 
+
 # CONSUL_DATA_DIR is exposed as a volume for possible persistent storage. The
 # CONSUL_CONFIG_DIR isn't exposed as a volume but you can compose additional
 # config files in there if you use this image as a base, or use CONSUL_LOCAL_CONFIG
@@ -47,6 +48,22 @@ CONSUL_CONFIG_DIR=/consul/config
 # Consul configuration JSON without having to bind any volumes.
 if [ -n "$CONSUL_LOCAL_CONFIG" ]; then
 	echo "$CONSUL_LOCAL_CONFIG" > "$CONSUL_CONFIG_DIR/local.json"
+fi
+
+# Setting CONSUL_TELEMETRY_INTERFACE will allow you to bind to a stats collector
+# over a specific interface. Primary use case is to be able to send stats to agents
+# running on the host. In your configuration file set CONSUL_TELEMETRY_ADDRESS as a 
+# placeholder.
+
+if [  $CONSUL_TELEMETRY_INTERFACE ]; then
+  CONSUL_TELEMETRY_ADDRESS=$(ip -o -4 addr list $CONSUL_TELEMETRY_INTERFACE | head -n1 | awk '{print $4}' | cut -d/ -f1)
+  if [ -z "$CONSUL_TELEMETRY_ADDRESS" ]; then
+    echo "Could not find Telemetry IP for interface '$CONSUL_CLIENT_INTERFACE', exiting"
+    exit 1
+  fi
+
+  sed -i s/TELEMETRY_ADDRESS/$CONSUL_TELEMETRY_ADDRESS/g /consul/config/*.json
+  echo "Updated telemetry address to use '$CONSUL_TELEMETRY_ADDRESS'"
 fi
 
 # If the user is trying to run Consul directly with some arguments, then
