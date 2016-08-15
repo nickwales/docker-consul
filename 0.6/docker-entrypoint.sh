@@ -36,7 +36,6 @@ if [ -n "$CONSUL_CLIENT_INTERFACE" ]; then
   echo "==> Found address '$CONSUL_CLIENT_ADDRESS' for interface '$CONSUL_CLIENT_INTERFACE', setting client option..."
 fi
 
-
 # CONSUL_DATA_DIR is exposed as a volume for possible persistent storage. The
 # CONSUL_CONFIG_DIR isn't exposed as a volume but you can compose additional
 # config files in there if you use this image as a base, or use CONSUL_LOCAL_CONFIG
